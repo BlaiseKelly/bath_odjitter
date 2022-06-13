@@ -407,23 +407,8 @@ m
 
 withr::with_dir('./', saveWidget(m, file = "route_options.html"))
 
-ggplot(f_down_NA, aes(x = variable, y = value, fill = disease)) +
-  geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ statcode)+
-  ggtitle("Mortality per region, excluding Amsterdam")+
-  theme(axis.text.x = element_text(angle = 90))+
-  ylab("Mortality in 2015")
-
 library(ggplot2)
 library(gganimate)
-
-# Make 2 basic states and concatenate them:
-a <- data.frame(group=c("A","B","C"), values=c(3,2,4), frame=rep('a',3))
-b <- data.frame(group=c("A","B","C"), values=c(5,3,7), frame=rep('b',3))
-data <- rbind(a,b)  
-
-# Basic barplot:
-ggplot(a, aes(x=group, y=values, fill=group)) + 
-  geom_bar(stat='identity')
 
 # Make a ggplot, but add frame=year: one image per year
 g1 <- ggplot(all_atcs, aes(x=site_ID, y=car_driver, fill=site_ID)) + 
@@ -440,4 +425,23 @@ g1 <- ggplot(all_atcs, aes(x=site_ID, y=car_driver, fill=site_ID)) +
 # Save at gif:
 animate(g1, fps = 4)
 anim_save("out/plots/jitter_atc.gif")
-?anim_save
+
+gg_pal <- c("#f7766c", "#d29200", "#92aa00", "#00ba37", "#00c19e", 
+            "#03b8e3", "#619cff", "#da72fb", "#fe61c2")
+
+tm3 <- tm_shape(ol_trimmed) +
+  tm_lines(palette = me_pal, breaks = bks_hr,
+           lwd = "car_driver",
+           scale = 20,
+           title.lwd = "Number of vehicles",
+           alpha = 0.6,
+           col = "car_driver",
+           title = "Flow (number of vehicles)"
+  ) +
+  tm_facets(along = "ID", free.coords = FALSE)+
+  tm_layout(frame = FALSE, legend.outside = TRUE)+  
+  tm_scale_bar(position = c("left", "bottom"))+
+  tm_shape(atc_snap)+
+  tm_dots(size = 1, col = "site_ID", palette = gg_pal)
+
+tmap_animation(tm3, filename = "out/plots/OD_jitter_trimmed_pts.gif", delay = 100)
